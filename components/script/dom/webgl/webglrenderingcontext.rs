@@ -851,8 +851,14 @@ impl WebGLRenderingContext {
             // example) passing a single byte for uploading a 1x1
             // GL_ALPHA/GL_UNSIGNED_BYTE texture would throw an error.
             let cpp = element_size * components / components_per_element;
-            let stride = (width * cpp + unpacking_alignment - 1) & !(unpacking_alignment - 1);
-            Ok(stride * (height - 1) + width * cpp)
+            let mut padding_bytes = (cpp * width) % unpacking_alignment;
+            if padding_bytes > 0 {
+                padding_bytes = unpacking_alignment - padding_bytes;
+            }
+            let bytes_per_row = cpp * width + padding_bytes;
+            let bytes_last_row = cpp * width;
+            let size = bytes_per_row * (height - 1) + bytes_last_row;
+            Ok(size)
         }
     }
 
